@@ -2,7 +2,8 @@
 WITH TA AS 
 (
 SELECT SUBX.CARD_ID, CARDS.VALID_TILL,
-MAX (CASE 
+MAX (
+ CASE 
   WHEN SUBX.status = 2 THEN
     CASE 
       WHEN SUBX.IS_MEMBERSHIP = 0 THEN SUBX.expiration_date+1
@@ -13,15 +14,15 @@ MAX (CASE
         END
     END
   ELSE  
-		CASE 
-			WHEN SUBX.expiration_date >= TO_DATE(current_date, 'DD.MM.YY') OR SUBX.mmshp_end_date >= TO_DATE(current_date, 'DD.MM.YY')  THEN TO_DATE(current_date, 'DD.MM.YY')
-			ELSE 
-				CASE 
+    CASE 
+       WHEN SUBX.expiration_date >= TO_DATE(current_date, 'DD.MM.YY') OR SUBX.mmshp_end_date >= TO_DATE(current_date, 'DD.MM.YY') THEN TO_DATE(current_date, 'DD.MM.YY')
+       ELSE 
+	 CASE 
           WHEN (SUBX.expiration_date > SUBX.mmshp_end_date OR SUBX.mmshp_end_date IS NULL) THEN SUBX.expiration_date+1
           ELSE SUBX.mmshp_end_date+1
         END
-		END
-END) as EXPDATE
+       END
+   END) as EXPDATE
 FROM SUBSCRIPTION_ACCOUNTING SUBX
 LEFT JOIN CARDS ON CARDS.CARD_ID = SUBX.CARD_ID
 WHERE CARDS.magstripe IS NOT NULL
