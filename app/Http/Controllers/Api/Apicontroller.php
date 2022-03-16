@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Nette\Utils\DateTime;
 
 
+
 class Apicontroller extends Controller
 {
 
