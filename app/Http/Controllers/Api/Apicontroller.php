@@ -23,7 +23,7 @@ class Apicontroller extends Controller
 
 
         try {
-            return response()->json(['allow' => false, 'message' => 'Ошибка: Сервер Sigur не доступен']);
+
             date_default_timezone_set("Europe/Moscow");
             $data =  $request->json()->all();
 
