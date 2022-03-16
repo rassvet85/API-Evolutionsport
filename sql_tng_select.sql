@@ -1,4 +1,3 @@
-/*Oracle 12 - выбор клиента по ID карты $Wildcard (ID) TNG*/
 /*Таблица Т2 - выбор пользователя, у которого тип карты - сопровождающий */
 WITH T2 AS 
 (
@@ -38,7 +37,7 @@ WHERE CARDS.CARD_TYPE_ID <> 5335 AND CARDEXTRA.MAGSTRIPE = '$Wildcard' AND CARDE
 )
 GROUP BY CARD_ID
 ), 
-/*Таблица ТA - данные по сроку действия абонемента у пользователя с типом карты - "не сопровождающий"   */
+/*Таблица ТA - данные по сроку действия абонемента у пользователя с типом карты - не сопровождающий   */
 TA AS 
 (
 SELECT CARDS.VALID_TILL,
@@ -54,7 +53,7 @@ MAX (CASE
     END
   ELSE  
 		CASE 
-			WHEN SUBX.expiration_date >= TO_DATE(current_date, 'DD.MM.YY') OR SUBX.mmshp_end_date >= TO_DATE(current_date, 'DD.MM.YY')  THEN TO_DATE(current_date, 'DD.MM.YY')
+			WHEN SUBX.expiration_date >= TO_DATE(current_date, 'YYYY-MM-DD HH24:MI:SS') OR SUBX.mmshp_end_date >= TO_DATE(current_date, 'YYYY-MM-DD HH24:MI:SS')  THEN TO_DATE(current_date, 'YYYY-MM-DD HH24:MI:SS')
 			ELSE 
 				CASE 
           WHEN (SUBX.expiration_date > SUBX.mmshp_end_date OR SUBX.mmshp_end_date IS NULL) THEN SUBX.expiration_date+1
@@ -69,7 +68,7 @@ AND CARDS.CARD_STATUS_ID = 1
 AND length(CARDS.magstripe ) = 8
 GROUP BY SUBX.CARD_ID, CARDS.VALID_TILL
 ), 
-/*Таблица ТB - данные по сроку действия абонемента у пользователя с типом карты - "сопровождающий"   */
+/*Таблица ТB - данные по сроку действия абонемента у пользователя с типом карты - сопровождающий   */
 TB AS 
 (
 SELECT CARDS.VALID_TILL,
@@ -85,7 +84,7 @@ MAX (CASE
     END
   ELSE  
 		CASE 
-			WHEN SUBX.expiration_date >= TO_DATE(current_date, 'DD.MM.YY') OR SUBX.mmshp_end_date >= TO_DATE(current_date, 'DD.MM.YY')  THEN TO_DATE(current_date, 'DD.MM.YY')
+			WHEN SUBX.expiration_date >= TO_DATE(current_date, 'YYYY-MM-DD HH24:MI:SS') OR SUBX.mmshp_end_date >= TO_DATE(current_date, 'YYYY-MM-DD HH24:MI:SS')  THEN TO_DATE(current_date, 'YYYY-MM-DD HH24:MI:SS')
 			ELSE 
 				CASE 
           WHEN (SUBX.expiration_date > SUBX.mmshp_end_date OR SUBX.mmshp_end_date IS NULL) THEN SUBX.expiration_date+1
@@ -101,13 +100,13 @@ AND CARDS.CARD_STATUS_ID = 1
 AND length(CARDS.magstripe ) = 8
 GROUP BY CARDS.VALID_TILL
 ), 
-/*Таблица ТС - выбор максимально возможного срока времени у пользователя с типом карты - "не сопровождающий" */
+/*Таблица ТС - выбор максимально возможного срока времени у пользователя с типом карты - не сопровождающий */
 TC AS
 (
 SELECT 1 as TT, CASE WHEN VALID_TILL+1 < EXPDATE THEN VALID_TILL+1 ELSE EXPDATE END AS EXPDATE
 FROM TA
 ), 
-/*Таблица ТD - выбор максимально возможного срока времени у пользователя с типом карты - "сопровождающий" */
+/*Таблица ТD - выбор максимально возможного срока времени у пользователя с типом карты - сопровождающий */
 TD AS
 (
 SELECT 1 as TT, MAX (CASE WHEN VALID_TILL+1 < EXPDATE THEN VALID_TILL+1 ELSE EXPDATE END) AS EXPDATE
@@ -119,4 +118,3 @@ FROM CARDS
 LEFT JOIN TC ON TC.TT = 1
 LEFT JOIN TD ON TD.TT = 1
 WHERE CARDS.MAGSTRIPE = '$Wildcard'
-
