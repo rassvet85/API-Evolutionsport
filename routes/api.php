@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Apicontroller;
 
+date_default_timezone_set("Europe/Moscow");
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -15,5 +16,5 @@ use App\Http\Controllers\Api\Apicontroller;
 |
 */
 
-Route::post('/laravel', [Apicontroller::class, 'Apinew']);
-Route::get('/laravel', [Apicontroller::class, 'Apinew']);
+Route::post('/laravel', [Apicontroller::class, 'apipost']);
+Route::get('/laravel', [Apicontroller::class, 'apiget']);

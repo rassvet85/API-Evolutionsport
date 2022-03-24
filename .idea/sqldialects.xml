@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/sql/sql_1Czup_select.sql" dialect="TSQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql_1Czup_sync.sql" dialect="TSQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql_sigur_select.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql_tng_select.sql" dialect="Oracle" />
+    <file url="file://$PROJECT_DIR$/sql/sql_tng_sync.sql" dialect="Oracle" />
+  </component>
+</project>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="a8f89844-50c5-4c5f-be08-66e788ed4d65" name="apiserver" url="http://10.82.2.15">
+        <fileTransfer rootFolder="/var/www/Laravel_new" accessType="SFTP" host="10.82.2.15" port="22" sshConfigId="e6d8242c-3fe0-4513-9f07-8e606d21544d" sshConfig="root@10.82.2.15:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

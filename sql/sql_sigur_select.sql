@@ -1,0 +1,1 @@
+SELECT exptime FROM personal WHERE CODEKEY = UNHEX(:wildcard)
