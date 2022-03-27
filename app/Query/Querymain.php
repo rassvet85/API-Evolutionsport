@@ -44,7 +44,7 @@ class Querymain
             try {
                 $users = DB::connection('oracle')->select(file_get_contents(base_path() . '/sql/sql_tng_select.sql'), ['wildcard' => $wildcard]);
             } catch (QueryException $e) {
-                return [false, $wildcard, $system, $exptime, 'Ошибка: Сервер TNG не доступен'];
+                return [false, $wildcard, $system, $exptime, 'Ошибка: Сервер TNG не доступен'.$e];
             }
         }
 

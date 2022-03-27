@@ -17,9 +17,9 @@ WITH TA AS
                                     END
                             ELSE
                                 CASE
-                                    WHEN SUBX.expiration_date >= TO_DATE(current_date, 'DD.MM.YY') OR
-                                         SUBX.mmshp_end_date >= TO_DATE(current_date, 'DD.MM.YY')
-                                        THEN TO_DATE(current_date, 'DD.MM.YY')
+                                    WHEN SUBX.expiration_date >= TRUNC(current_date) OR
+                                         SUBX.mmshp_end_date >= TRUNC(current_date)
+                                        THEN TRUNC(current_date)
                                     ELSE
                                         CASE
                                             WHEN (SUBX.expiration_date > SUBX.mmshp_end_date OR

@@ -55,9 +55,9 @@ WITH T2 AS (SELECT CARD_ID
                                                      THEN SUBX.expiration_date + 1
                                                  ELSE SUBX.mmshp_end_date + 1 END END
                            ELSE CASE
-                                    WHEN SUBX.expiration_date >= TO_DATE(current_date, 'YYYY-MM-DD HH24:MI:SS') OR
-                                         SUBX.mmshp_end_date >= TO_DATE(current_date, 'YYYY-MM-DD HH24:MI:SS')
-                                        THEN TO_DATE(current_date, 'YYYY-MM-DD HH24:MI:SS')
+                                    WHEN SUBX.expiration_date >= TRUNC(current_date) OR
+                                         SUBX.mmshp_end_date >= TRUNC(current_date)
+                                        THEN TRUNC(current_date)
                                     ELSE CASE
                                              WHEN (SUBX.expiration_date > SUBX.mmshp_end_date OR
                                                    SUBX.mmshp_end_date IS NULL)
@@ -81,9 +81,9 @@ WITH T2 AS (SELECT CARD_ID
                                                      THEN SUBX.expiration_date + 1
                                                  ELSE SUBX.mmshp_end_date + 1 END END
                            ELSE CASE
-                                    WHEN SUBX.expiration_date >= TO_DATE(current_date, 'YYYY-MM-DD HH24:MI:SS') OR
-                                         SUBX.mmshp_end_date >= TO_DATE(current_date, 'YYYY-MM-DD HH24:MI:SS')
-                                        THEN TO_DATE(current_date, 'YYYY-MM-DD HH24:MI:SS')
+                                    WHEN SUBX.expiration_date >= TRUNC(current_date) OR
+                                         SUBX.mmshp_end_date >= TRUNC(current_date)
+                                        THEN TRUNC(current_date)
                                     ELSE CASE
                                              WHEN (SUBX.expiration_date > SUBX.mmshp_end_date OR
                                                    SUBX.mmshp_end_date IS NULL)
