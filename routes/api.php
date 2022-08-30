@@ -1,8 +1,7 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Apicontroller;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\Apicontroller;
 
 date_default_timezone_set("Europe/Moscow");
 /*
@@ -18,3 +17,4 @@ date_default_timezone_set("Europe/Moscow");
 
 Route::post('/laravel', [Apicontroller::class, 'apipost']);
 Route::get('/laravel', [Apicontroller::class, 'apiget']);
+Route::post('/events', [Apicontroller::class, 'eventpost']);
