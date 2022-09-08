@@ -3,8 +3,8 @@ Evolution API Server
 Проект сделан на основе ТЗ "Проект API сервера для СКУД Evolutionsport.docx"
 
 Настройки параметров WEB-делегирование Sigur:
-•	URL делегирования: http://Apiserver/api/laravel
-•	URL доставки проходов: http://Apiserver/api/events
+- URL делегирования: http://Apiserver/api/laravel
+- URL доставки проходов: http://Apiserver/api/events
 
 Конфиг сервера находится в таблице БД "config": 
 
