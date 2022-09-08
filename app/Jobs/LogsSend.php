@@ -34,7 +34,11 @@ class LogsSend implements ShouldQueue
     {
         //Запрашиваем название точки прохода в Сигур
         try {
-            $accesspoint_name = DB::connection('mysql')->table('devices')->select('NAME')->where('ID', '=', $idPoint)->first();
+            $accesspoint_name = DB::connection('mysql')
+                ->table('devices')
+                ->select('NAME')
+                ->where('ID', '=', $idPoint)
+                ->first();
         } catch (QueryException) {
             return "Ошибка запроса базы Сигур";
         }
@@ -46,7 +50,12 @@ class LogsSend implements ShouldQueue
     {
         //Запрашиваем название точки прохода в Сигур
         try {
-            $personal = DB::connection('mysql')->table('personal')->select('NAME')->where('CODEKEY', '=', hex2bin('20'.$card.'000000'))->first();
+            $personal = DB::connection('mysql')
+                ->table('personal')
+                ->select('NAME')
+                ->where('CODEKEY', '=', hex2bin('20'.$card.'000000'))
+                ->where('STATUS', '!=', 'Fired')
+                ->first();
         } catch (QueryException) {
             return "Ошибка запроса базы Сигур";
         }
@@ -56,7 +65,8 @@ class LogsSend implements ShouldQueue
     #Функция отправки логов в БД 'pass_all_logs'
     private function sendLog($data) {
         try {
-            DB::connection('pgsql')->table('pass_all_logs')->insert([
+            DB::connection('pgsql')->table('pass_all_logs')
+                ->insert([
                 'date' => $data[0],
                 'event_id' => $data[1],
                 'type_id' => $data[2],
@@ -105,14 +115,15 @@ class LogsSend implements ShouldQueue
             $this->sendLog([$data[0],$data[1],$data[2],$data[3],$data[4],$data[5],$type,$data[7],$this->getNamePoint($data[7]),$data[8],$sop,$data[10],$data[11]]);
 
         } else {
-             //Тут работаем с подтверждением проходов
+            //Тут работаем с подтверждением проходов
             $sendData = array();
             $tr = false;
             if (isset($data['logs'])) {
                 foreach ($data['logs'] as $log) {
                     try {
                         //Запрашиваем последние данные запросов проходов для карты
-                        $emplData = DB::connection('pgsql')->select('SELECT * FROM "pass_all_logs" WHERE "type_id" = 1 AND "id" = (SELECT MAX("id") FROM "pass_all_logs" WHERE "card" = \''.$log['keyHex'].'\')');
+                        $emplData = DB::connection('pgsql')
+                            ->select('SELECT * FROM "pass_all_logs" WHERE "type_id" = 1 AND "id" = (SELECT MAX("id") FROM "pass_all_logs" WHERE "card" = \''.$log['keyHex'].'\')');
                     } catch (QueryException) {
                         Log::error('Log message', array('context' => 'Оишбка запроса базы логов в сигур'));
                     }
