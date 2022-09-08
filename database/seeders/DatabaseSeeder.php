@@ -15,7 +15,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        $data = [
+        $data1 = [
             ['id'=> 1, 'name'=> 'apipoint', 'data' => '1,2'],
             ['id'=> 2, 'name'=> 'kpppoint', 'data' => '3,4'],
             ['id'=> 3, 'name'=> 'nfcpoint', 'data' => '3,4'],
@@ -36,7 +36,11 @@ class DatabaseSeeder extends Seeder
             ['id'=> 18, 'name'=> 'pointpss', 'data' => '98'],
         ];
 
-        DB::table('config')->insert($data);
+        $data2 = ['id'=> 1, 'name'=> 'ФОК', 'data' => '1,2'];
+
+        DB::table('config')->insert($data1);
+
+        DB::table('config_point_empl')->insert($data2);
 
     }
 }
