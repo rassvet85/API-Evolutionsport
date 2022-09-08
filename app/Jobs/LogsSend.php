@@ -105,7 +105,7 @@ class LogsSend implements ShouldQueue
             $this->sendLog([$data[0],$data[1],$data[2],$data[3],$data[4],$data[5],$type,$data[7],$this->getNamePoint($data[7]),$data[8],$sop,$data[10],$data[11]]);
 
         } else {
-            //Тут работаем с подтверждением проходов
+             //Тут работаем с подтверждением проходов
             $sendData = array();
             $tr = false;
             if (isset($data['logs'])) {
