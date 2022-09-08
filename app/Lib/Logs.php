@@ -2,6 +2,7 @@
 
 namespace App\Lib;
 
+use App\Jobs\LogsSend;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Nette\Utils\DateTime;
@@ -43,9 +44,15 @@ class Logs
             $data = DB::connection('pgsql')->select('SELECT MAX(time) AS time FROM "double_pass_log" WHERE "wildcard" = \''.$wildcard.'\'');
             if (isset($data) && isset($data[0]->time) && (int)$date->format('Uu') - (int)DateTime::createFromFormat('Y-m-d H:i:s.u', $data[0]->time)->format('Uu') < $time*1000000) return [false, 'Не прошло '.$time.' секунд с момента последнего прикладывания карты'];
             return $this->passLogPast($date, $wildcard);
-        } catch (QueryException $e) {
+        } catch (QueryException) {
             return [false, 'Ошибка: Сервер POSTGRESS не доступен'];
         }
+    }
+
+    #Функция отправки логирования в очередь
+    public function sendLogs($data,$id)
+    {
+        dispatch(new LogsSend($data, $id));
     }
 
 }

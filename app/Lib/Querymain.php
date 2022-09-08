@@ -99,6 +99,7 @@ class Querymain extends Queryhelper
     public function dualPass($wildcard, $accesspoint): array
     {
         if ($this->config->getDualpass() == 0) return [true];
+        //Если точка прохода принадлежит NFC терминалу - не обращаем внимания на двойное прикладывание, пропускаем клиента и очищаем БД двойного прикладывания для этой карты
         if (isset($wildcard) && strlen($wildcard) == 8 && in_array($accesspoint, array_map('intval', $this->config->getNfcpoint()))) try {
             return $this->logs->passLogDelete(new DateTime('-' . $this->config->getDualpass() . ' second'), (array)$wildcard);
         } catch (Exception) {
@@ -162,6 +163,7 @@ class Querymain extends Queryhelper
         $system = [
             'wildcard' => [$wildcard],
             'wildcardown' => $wildcard,
+            'name' => null,
             'exptime' => null,
             'systype' => 0,
             'typeus' => 0,
@@ -176,6 +178,8 @@ class Querymain extends Queryhelper
         ];
         //Если конфиг по какой то причине не прочитан или содержит ошибку - возвращаем ошибку.
         if (!$this->config->getSuccessful()[0]) return [false, $system, $this->config->getSuccessful()[1]];
+        //Если ID карты не равно 8 - возвращаем ошибку.
+        if (strlen($wildcard) != 8) return [false, $system, 'Карта '.$wildcard.' имеет некорректный формат'];
 
         #API (Проверяем, предназначена ли точка доступа для списания услуг и контроля клиентов по 1С Фитнес. Если точка доступа на КПП - проверку производим ниже для клиентов.
         if (in_array($accesspoint, array_map('intval', $this->config->getApipoint())) && !in_array($accesspoint, array_map('intval', $this->config->getKpppoint()))) {
@@ -249,6 +253,7 @@ class Querymain extends Queryhelper
 
         #Результаты запросов обрабатываем и выдаем финальный результат пропуска объекта
         if (isset($services) && count($services) > 0) {
+            $system['name'] = $services[0]->name;
             if ($system['systype'] != 3) {
                 //Если это сотрудник из 1С ЗУП - проверяем на наличие фото, если фото нет - не пускаем.
                 if ($system['systype'] == 2 && !isset($services[0]->photo)) return [false, $system, $services[0]];
@@ -348,23 +353,22 @@ class Querymain extends Queryhelper
                     }
                 }
                 else return [false, $system, "На карте отсутствуют услуги"];
-
             }
         }
         return [false, $system, 'Ошибка: карты ' . $wildcard . ' нет в системах'];
-
     }
     #Функция подтверждения прохода через турникет
-    public function querylogs($data): array
+    public function querylogs($value): array
     {
         $pint = false;
         $dualpass = array();
+        $data = $value;
         if (isset($data['logs'])) {
             foreach ($data['logs'] as &$log) {
                 if (!$pint && in_array($log['accessPoint'],$this->config->getApipoint())) $pint = true;
                 // Записываем данные карт для будущего удаления в логе двойных проходов
                 if (isset($log['keyHex']) && strlen($log['keyHex']) == 8) $dualpass[] = $log['keyHex'];
-                //Если карточка принадлжежит сотруднику, либо номер карточки не равно 8 (при проходе через отключенный турникет ID = 000000) - меняем ID точки на "нулевую точку прохода" для того, чтобы сотрудник не высвечивался в логах 1С Фитнес.
+                //Если карточка принадлжежит сотруднику, либо номер карточки не равен 8 (при проходе через отключенный турникет ID = 000000) - меняем ID точки на "нулевую точку прохода" для того, чтобы сотрудник не высвечивался в логах 1С Фитнес.
                 if (strlen($log['keyHex']) != 8 || (strlen($log['empId']) != 33 && $log['internalEmpId'] != 0)) $log['accessPoint'] = $this->config->getPointnull();
                 //Если карточка принадлежит типу "Плоскостные", точка прохода входит в массив apipoint и kpppoint то меняем ID точки на виртуальную pointpss из конфига, что означает списание услуги на КПП.
                 else if (in_array($log['accessPoint'],$this->config->getApipoint()) && in_array($log['accessPoint'], array_map('intval', $this->config->getKpppoint()))) {
@@ -390,10 +394,14 @@ class Querymain extends Queryhelper
                     ->timeout(4)
                     ->post($this->config->getApieventsurl(), $data);
                 //Log::info('Log message', array('context' => $data['logs']));
-                if ($response->successful()) return ['confirmedLogId' => $response['confirmedLogId']];
+                if ($response->successful()) {
+                    $this->logs->sendLogs($value, $response['confirmedLogId']);
+                    return ['confirmedLogId' => $response['confirmedLogId']];
+                }
                 else return ['confirmedLogId'=> 0];
             }
             //Если в списке проходов нет точек из массива apipoint - просто подтверждаем все проходы.
+            $this->logs->sendLogs($value, (int)$data['logs'][count($data['logs'])-1]['logId']);
             return ['confirmedLogId'=> (int)$data['logs'][count($data['logs'])-1]['logId']];
 
         }

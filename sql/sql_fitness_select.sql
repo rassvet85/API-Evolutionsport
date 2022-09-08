@@ -35,7 +35,7 @@ FROM _Document215 AS DOC3
     JOIN _AccumRgT7920 AS REG ON REG._Fld7904_RRRef = DOC3._IDRRef AND REG._Fld7906 > 0
     )
 /* Выборка активных услуг и данных клиента */
-SELECT UPPER(CARDS._Fld2882) AS card, DATEADD(yy, -2000, DOC1._Fld7489) AS exptime, BINFILE.Version AS phototime, 0 AS sop, TYPCARD._Description AS carddesc, VIDUS._EnumOrder as vidus, TYPEUS._EnumOrder as typeus, DOC1._Fld7492 as dayus, DOC1._Fld7493 as posus, CONVERT(int,CARDS._Fld2881) AS statuscard, STAT._EnumOrder AS status, DATEADD(yy, -2000, DOC2._Fld1175) AS date1, T3.RAZUSL AS razusl, T2.statuszan, DATEADD(yy, -2000, T2.starttime) AS starttime, DATEADD(yy, -2000, T2.finishtime) AS finishtime
+SELECT SUB._Description AS name, UPPER(CARDS._Fld2882) AS card, DATEADD(yy, -2000, DOC1._Fld7489) AS exptime, BINFILE.Version AS phototime, 0 AS sop, TYPCARD._Description AS carddesc, VIDUS._EnumOrder as vidus, TYPEUS._EnumOrder as typeus, DOC1._Fld7492 as dayus, DOC1._Fld7493 as posus, CONVERT(int,CARDS._Fld2881) AS statuscard, STAT._EnumOrder AS status, DATEADD(yy, -2000, DOC2._Fld1175) AS date1, T3.RAZUSL AS razusl, T2.statuszan, DATEADD(yy, -2000, T2.starttime) AS starttime, DATEADD(yy, -2000, T2.finishtime) AS finishtime
 /* _Reference87 Справочник.Карты (данные карты клиента) */
 FROM _Reference87 AS CARDS
          /* _Document226 Документ.ЧленствоПакетУслуг (выбираем неудалённые и не отменённые услуги) */
@@ -61,10 +61,10 @@ WHERE CARDS._Fld2882 = @WILDCARD AND CARDS._Marked = 0x0 AND CARDS._Fld2888 = 0x
 
 UNION
 /* Выборка активных услуг и данных сопровождаемых */
-SELECT UPPER(CARDSX._Fld2882) AS card, DATEADD(yy, -2000, DOC1._Fld7489) AS exptime, BINFILE.Version AS phototime, 1 AS sop, TYPCARD._Description AS carddesc, VIDUS._EnumOrder as vidus, TYPEUS._EnumOrder as typeus, DOC1._Fld7492 as dayus, DOC1._Fld7493 as posus, CONVERT(int, CARDS._Fld2881) AS statuscard, STAT._EnumOrder AS status, DATEADD(yy, -2000, DOC2._Fld1175) AS date1, T3.RAZUSL AS razusl, T2.statuszan, DATEADD(yy, -2000, T2.starttime) AS starttime, DATEADD(yy, -2000, T2.finishtime) AS finishtime
+SELECT SUB._Description AS name, UPPER(CARDSX._Fld2882) AS card, DATEADD(yy, -2000, DOC1._Fld7489) AS exptime, BINFILE.Version AS phototime, 1 AS sop, TYPCARD._Description AS carddesc, VIDUS._EnumOrder as vidus, TYPEUS._EnumOrder as typeus, DOC1._Fld7492 as dayus, DOC1._Fld7493 as posus, CONVERT(int, CARDS._Fld2881) AS statuscard, STAT._EnumOrder AS status, DATEADD(yy, -2000, DOC2._Fld1175) AS date1, T3.RAZUSL AS razusl, T2.statuszan, DATEADD(yy, -2000, T2.starttime) AS starttime, DATEADD(yy, -2000, T2.finishtime) AS finishtime
 /* _InfoRg6849 РегистрСведений.РодственныеСвязи (выбираем сопаровождаемых клиента) */
 FROM _InfoRg6849 AS CLRLX
-         /* _Reference87 Справочник.Карты (данные карт сопровождаемых) */
+         /* _Reference87 Справочник.Карты (данные карты сопровождаемого) */
          JOIN _Reference87 AS CARDS ON CARDS._Fld2879_RRRef = CLRLX._Fld6850RRef
     /* _Reference56 Справочник.ВидыКарт (выбираем тип карты клиента)*/
     JOIN _Reference56 AS TYPCARD ON TYPCARD._IDRRef = CARDS._Fld2878RRef
@@ -82,7 +82,7 @@ FROM _InfoRg6849 AS CLRLX
     LEFT JOIN _InfoRg7483 AS DOC1 ON DOC1._Fld7484RRef = DOC._IDRRef
     /* _Enum379 Перечисление.СтатусыЧленствПакетовУслуг (выбираем id статуса услуг)*/
     LEFT JOIN _Enum379 AS STAT ON STAT._IDRRef = DOC1._Fld7485RRef AND STAT._EnumOrder > 0
-    /* _Reference93 Справочник.Контрагенты (выбираем персональные данные сопровождаемых)*/
+    /* _Reference93 Справочник.Контрагенты (выбираем персональные данные сопровождаемого)*/
     LEFT JOIN _Reference93 AS SUB ON SUB._Marked = 0x0 AND SUB._IDRRef = CARDS._Fld2879_RRRef
     LEFT JOIN T1 AS BINFILE ON BINFILE.ID = SUB._Fld3026_RRRef
     LEFT JOIN T2 ON T2.ID = CLRLX._Fld6850RRef

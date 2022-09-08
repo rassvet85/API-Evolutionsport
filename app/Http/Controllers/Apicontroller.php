@@ -10,6 +10,7 @@ use function response;
 
 class Apicontroller extends Controller
 {
+
     #Запрос доступа от SIGUR
     public function apipost(Request $request): JsonResponse
     {
@@ -30,17 +31,20 @@ class Apicontroller extends Controller
             $accesspoint = null;
             $typeid = null;
             $direction = null;
+            $wildcard = "0";
+            //Объявляем главный класс запроса разрешения проходов
+            $query = new Querymain();
 
-            if(isset($data['keyHex']) && strlen($data['keyHex']) == 8) $wildcard = $data['keyHex']; else return response()->json(['allow'=>false, 'message' => 'Карта '.$data['keyHex'].' имеет некорректный формат']);
             if(isset($data['extId'])) $extid = $data['extId'];
             if(isset($data['empId'])) $empid = $data['empId'];
             if(isset($data['accessPoint'])) $accesspoint = $data['accessPoint'];
             if(isset($data['type'])) $typeid = $data['type'];
             if(isset($data['direction'])) $direction = $data['direction'];
+            if(isset($data['keyHex'])) $wildcard = $data['keyHex'];
 
-            $query = new Querymain();
             //Если настроены данные авторизации запроса в SIGUR - используем их, если нет - используем авторизацию из конфига .env
             if ($request->header('Authorization') !== null) $query->setauth($request->header('Authorization'));
+            //Отправляем данные для запроса API
             $value = $query->mainQuery($empid, $extid,$wildcard, $accesspoint, $typeid, $direction);
 
             //Проверяем на двойное прикладывание карты
@@ -51,6 +55,8 @@ class Apicontroller extends Controller
                     $value[2] = $dualpass[1];
                 }
             }
+
+            $query->logs->sendLogs([date("Y-m-d H:i:s"), null, 1, $value[0], $wildcard, $value[1]['name'], $value[1]['systype'], $accesspoint, $direction, (int)$value[1]['sop'], $value[1]['typecard'], $value[2]], 0);
 
             if ($value[0]) return response()->json(['allow'=>true]);
             else return response()->json(['allow'=>false, 'message' => $value[2]]);
@@ -87,15 +93,14 @@ class Apicontroller extends Controller
             $typeid = $request->input('type');
             $direction = (int)$request->input('direction');
             $wildcard = strtoupper($request->input('wildcard'));
-            if (strlen($wildcard) != 8) return response()->json(['allow'=>false, 'message' => 'Карта '.$wildcard.' имеет некорректный формат']);
             if ($extid == "null") $extid = null;
             if ($empid == "null") $empid = null;
             if($accesspoint == "null") $accesspoint = 0;
             if($typeid == "null") $typeid = null;
             if($direction == "null") $direction = 2;
-
+            //Объявляем главный класс запроса разрешения проходов
             $query = new Querymain();
-
+            //Отправляем данные для запроса API
             $value = $query->mainQuery($empid, $extid, $wildcard, $accesspoint, $typeid, $direction);
             $type = match ($value[1]['systype']) {
                 0 => "null",
@@ -114,8 +119,7 @@ class Apicontroller extends Controller
                     $value[2] = $dualpass[1];
                 }
             }
-
-            return response()->json(['allow'=>$value[0], 'card' => $wildcard, 'typesys' => $type, 'typecard' => $value[1]['typecard'], 'accesstype' => $sop, 'typeus' => (int)$value[1]['typeus'], 'dayus' => (int)$value[1]['dayus'], 'posus' => (int)$value[1]['posus'],  'typeid' => $typeid, 'accesspoint' => $accesspoint, 'direction' => $direction, 'exptime' => $value[1]['exptime'], 'message' => $value[2]]);
+            return response()->json(['allow'=>$value[0], 'card' => $wildcard, 'name' => $value[1]['name'], 'typesys' => $type, 'typecard' => $value[1]['typecard'], 'accesstype' => $sop, 'typeus' => (int)$value[1]['typeus'], 'dayus' => (int)$value[1]['dayus'], 'posus' => (int)$value[1]['posus'],  'typeid' => $typeid, 'accesspoint' => $accesspoint, 'direction' => $direction, 'exptime' => $value[1]['exptime'], 'message' => $value[2]]);
     }
 
     #Запрос для отправки проходов к 1С фитнес (подтверждение проходов через турникет)

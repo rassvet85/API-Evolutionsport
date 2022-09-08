@@ -10,7 +10,7 @@ class Queryhelper
 {
     protected string $auth;
     protected mixed $config;
-    protected mixed $logs;
+    public mixed $logs;
 
     #Проверка формата даты
     protected function verifyDate($date): bool
