@@ -1,6 +1,6 @@
 Evolution API Server
 
-Проект сделан на основе ТЗ "Проект API сервера для СКУД Evolutionsport.docx" (корень репо)
+Проект реализован на основе ТЗ "Проект API сервера для СКУД Evolutionsport.docx" (корень репо)
 
 Настройки параметров WEB-делегирование Sigur:
 - URL делегирования: http://Apiserver/api/laravel
