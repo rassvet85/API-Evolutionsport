@@ -36,11 +36,7 @@ class DatabaseSeeder extends Seeder
             ['id'=> 18, 'name'=> 'pointpss', 'data' => '98'],
         ];
 
-        $data2 = ['id'=> 1, 'name'=> 'ФОК', 'data' => '1,2'];
-
         DB::table('config')->insert($data1);
-
-        DB::table('config_point_empl')->insert($data2);
 
     }
 }
