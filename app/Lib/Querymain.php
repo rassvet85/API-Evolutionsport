@@ -256,7 +256,7 @@ class Querymain extends Queryhelper
             $system['name'] = $services[0]->name;
             if ($system['systype'] != 3) {
                 //Если это сотрудник из 1С ЗУП - проверяем на наличие фото, если фото нет - не пускаем.
-                if ($system['systype'] == 2 && !isset($services[0]->photo)) return [false, $system, $services[0]];
+                if ($system['systype'] == 2 && !isset($services[0]->photo)) return [false, $system, 'У сотрудника отсутствует фото'];
                 $system['exptime'] = $services[0]->exptime;
                 //Если время, полученное с базы равно null - доступ без лимита.
                 if ($system['exptime'] == null) return [true, $system, 'Доступ без лимита'];
