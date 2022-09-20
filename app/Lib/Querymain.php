@@ -186,6 +186,7 @@ class Querymain extends Queryhelper
             //Проверяем на сотрудника. Если это сотрудник, проверяем доступ к точкам API. Если все ОК - пускаем его с проверкой доступа к системе.
             if ((isset($empid) && !isset($extid)) || strlen($extid) == 32)
             {
+                $system['systype'] = 2;
                 $point = $this->config->getPointEmpl($empid);
                 $error = "";
                 if (!$point[0]) return [false, $system, $point[1]];
