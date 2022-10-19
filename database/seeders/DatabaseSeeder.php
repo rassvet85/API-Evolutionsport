@@ -35,6 +35,7 @@ class DatabaseSeeder extends Seeder
             ['id'=> 17, 'name'=> 'pointnull', 'data' => '99'],
             ['id'=> 18, 'name'=> 'pointpss', 'data' => '98'],
             ['id'=> 19, 'name'=> 'cardstypearenda', 'data' => 'Арендатор,Участник аренды,ПСС арендатор,ПСС участник аренды'],
+            ['id'=> 20, 'name'=> 'cardsnoschedule', 'data' => 'Медицинские услуги'],
         ];
 
         DB::table('config')->insert($data1);
