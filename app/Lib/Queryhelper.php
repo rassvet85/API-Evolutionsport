@@ -2,6 +2,7 @@
 
 namespace App\Lib;
 
+use DateInterval;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Nette\Utils\DateTime;
@@ -35,7 +36,7 @@ class Queryhelper
             if (!isset($typeCard[0]->carddesc)) $typeCard[0]->carddesc = "Без названия";
             if (isset($typeCard[0]->statuscard) && $typeCard[0]->statuscard == 1) return [false, 'Карта заблокирована администратором'];
             return [true, $typeCard[0]->carddesc];
-        } catch (QueryException $e) {
+        } catch (QueryException) {
             return [false, 'Ошибка: Сервер FITNESS не доступен'];
         }
     }

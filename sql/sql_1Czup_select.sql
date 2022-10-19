@@ -30,7 +30,7 @@ WITH T1 AS (SELECT CONVERT(VARCHAR(32), s._Fld6975RRef, 2)                      
                 /*проверка на архив*/
               AND s._Fld6979 = 0
                 /* Проверка на увольнение */
-              AND (e1._Fld25329 < e1._Fld25328 OR e1._Fld25329 >= DATEADD(yy,+2000,getdate()-1.33334))),
+              AND (e1._Fld25329 < e1._Fld25328 OR e1._Fld25329 >= DATEADD(yy,+2000,getdate()-30.33334))),
      T2 AS (SELECT ID FROM T1 GROUP BY ID HAVING COUNT(*) > 1)
 /*Выбираем сотрудников имеющих несколько должностей на работе и выбираем по приоритету из _Enum503 (меньше - лучше) */
 SELECT name, exptime, photo

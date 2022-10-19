@@ -16,14 +16,17 @@ class Config
     private string $soptypecard;
     private string $soprovidcard;
     private string $psstypecard;
+    private string $arendatypecard;
     private string $fitnesslogin;
     private string $fitnesspass;
     private string $apieventsurl;
     private string $apigetaccessurl;
     private string $apigetaccessnologurl;
+    private string $noschedulecard;
     private array $successful;
     private int $dualpass;
     private int $timestart;
+    private int $timefinish;
     private int $pointnull;
     private int $pointpss;
 
@@ -81,6 +84,10 @@ class Config
                             if (isset($temp->data) && ctype_digit($temp->data)) $this->timestart = $temp->data;
                             else $cause = "Ошибка: Неверный формат конфига времени в минутах для доступа на территорию до начала занятия";
                             break;
+                        case 7:
+                            if (isset($temp->data) && ctype_digit($temp->data)) $this->timefinish = $temp->data;
+                            else $cause = "Ошибка: Неверный формат конфига времени в минутах для доступа на территорию после занятия для сопровождающих";
+                            break;
                         case 8:
                             if (isset($temp->data) && ctype_digit($temp->data)) $this->dualpass = $temp->data;
                             else $cause = "Ошибка: Неверный формат конфига времени в секундах для двойного прикладывания карты";
@@ -124,6 +131,14 @@ class Config
                         case 18:
                             if (isset($temp->data) && ctype_digit($temp->data)) $this->pointpss = $temp->data;
                             else $cause = "Ошибка: Не получены из конфига id вирутальной точки прохода ПСС";
+                            break;
+                        case 19:
+                            if (isset($temp->data)) $this->arendatypecard = $temp->data;
+                            else $cause = "Ошибка: Не получены из конфига названия типа карт арендаторов";
+                            break;
+                        case 20:
+                            if (isset($temp->data)) $this->noschedulecard = $temp->data;
+                            else $cause = "Ошибка: Не получены из конфига названия типа карт без проверки расписания на КПП";
                             break;
                     }
                     if ($cause != "") {$this->successful = [false, $cause]; return;}
@@ -202,6 +217,16 @@ class Config
     {
         return $this->psstypecard;
     }
+    #Функция запроса названия типа карты клиентов - арендаторов.
+    public function getArendatypecard(): string
+    {
+        return $this->arendatypecard;
+    }
+    #Функция запроса названия типа карты клиентов без проверки расписания на КПП.
+    public function getNoScheduletypecard(): string
+    {
+        return $this->noschedulecard;
+    }
     #Функция запроса логина к API 1С Фитнес.
     public function getFitnesslogin(): string
     {
@@ -242,6 +267,11 @@ class Config
     {
         return $this->timestart;
     }
+    #Функция запроса времени в минутах разрешения прохода после занятия для сопровождающих.
+    public function getTimefinish(): int
+    {
+        return $this->timefinish;
+    }
     #Функция запроса id типа карты "Сопровождающий" в 1С Фитнес.
     public function getSoprovidcard(): string
     {
@@ -257,5 +287,4 @@ class Config
     {
         return $this->pointpss;
     }
-
 }

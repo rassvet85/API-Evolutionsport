@@ -3,7 +3,6 @@
 use App\Http\Controllers\Apicontroller;
 use Illuminate\Support\Facades\Route;
 
-date_default_timezone_set("Europe/Moscow");
 /*
 |--------------------------------------------------------------------------
 | API Routes

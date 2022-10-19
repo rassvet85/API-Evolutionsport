@@ -88,7 +88,7 @@ class Querymain extends Queryhelper
             if ($response['allow']) return [true, true, $wildcard[$i]];
             $i++;
         }
-        // Если ни у кого у сопровождаемых нет доступа - возвращаем запрет прохода.
+        // Если ни у кого у сопровождаемых либо у самого клиента нет доступа - возвращаем запрет прохода.
         if ($i > 0) return [true, false];
         // Если вообще нет ничего в ответе $responses - возвращаем ошибку.
         return [false, 'Ошибка: нет ответа от сервера API FITNESS'];
@@ -109,19 +109,22 @@ class Querymain extends Queryhelper
     }
 
     #Функция постобработки для API
-    private function postProcess($system, $message, $service): array
+    private function postProcess($system, $message, $service, $countfinish = null): array
     {
         //Проверяем конфиг на доступ 1С фитнес к точке КПП. Если доступ есть - проверяем дополнительно доступ к API 1С Фитнес.
-        if (in_array($system['accesspoint'], array_map('intval', $this->config->getApipoint())) && in_array($system['accesspoint'], array_map('intval', $this->config->getKpppoint())))
+        if (in_array($system['accesspoint'], array_map('intval', $this->config->getApipoint())) && in_array($system['accesspoint'], array_map('intval', $this->config->getKpppoint())) && strrpos($this->config->getNoScheduletypecard(), $system['typecardservice']) === false)
         {
             if ($system['typecard'] == $this->config->getSoptypecard()) {
                 //Работа с типом карты "Сопровождающий"
                 $response = $this->getAccessSop($system['typeid'], $system['accesspoint'], $system['direction'], $system['wildcard']);
-                if (!$response[0]) return [false, $system, $response[1]];
+                if (!$response[0]) {
+                    return [false, $system, $response[1]];
+                }
                 if ($response[1]) {
                     if ($response[2] == $system['wildcardown']) {$system['sop'] = 0; return [true, $system, 'Доступ по своей услуге'];}
                     $system['sop'] = 1; return [true, $system, 'Доступ по сопровождаемому'];
                 } else {
+                    if (isset($countfinish) && $countfinish > 0) return [true, $system, 'Доступ по сопровождаемому'];
                     try {
                         //Если разрешения нет, но у клиента или у сопровождающего есть сегодня занятите - в причине отказа указываем ближайшее время, когда клиент сегодня может зайти на территорию
                         if (isset($service->statuszan) && $service->statuszan == 1 && $this->verifyDate($service->starttime) && (new DateTime('+' . $this->config->getTimestart() . ' minute')) < DateTime::createFromFormat('Y-m-d H:i:s', $service->starttime)) {
@@ -137,10 +140,10 @@ class Querymain extends Queryhelper
             {
                 //Работа с остальными картами
                 //Если тип карты относится к ПСС, меняем id точки прохода на виртуальную Pointpss из конфига
-                if (strripos($this->config->getPsstypecard(), $system['typecard']) !== false) {
+                if (strrpos($this->config->getPsstypecard(), $system['typecard']) !== false) {
                     $system['accesspoint'] = $this->config->getPointpss();
                 }
-                //Запрашиваем разрешения прохода через API у 1С Фитнес
+                //Запрашиваем разрешение прохода через API у 1С Фитнес
                 $response = $this->getAccessFitness($system['typeid'], $system['accesspoint'], $system['direction'], $system['wildcard'][0]);
                 try {
                     //Если разрешения нет, но у клиента есть сегодня занятите - в причине отказа указываем время, когда клиент сегодня может зайти на территорию
@@ -175,6 +178,7 @@ class Querymain extends Queryhelper
             'accesspoint' => $accesspoint,
             'typeid' => $typeid,
             'typecard' => 'без названия',
+            'typecardservice' => 'без названия',
         ];
         //Если конфиг по какой то причине не прочитан или содержит ошибку - возвращаем ошибку.
         if (!$this->config->getSuccessful()[0]) return [false, $system, $this->config->getSuccessful()[1]];
@@ -277,9 +281,10 @@ class Querymain extends Queryhelper
                 $bestus = -1;
                 $per = true;
                 $cardarray = array();
+                $finishtime = null;
                 foreach ($services as $service) {
                     if ($per) $bestus++;
-                    if ($service->razusl == 1 || ($service->status == 1 && (($service->typeus == 0 && $service->dayus > 0) || ($service->typeus == 1 && $service->posus > 0)))) {
+                    if ($service->razusl == 1 || ($service->status == 1 && (($service->typeus == 0 && $service->dayus > 0) || ($service->typeus == 1 && $service->posus > 0))) || strrpos($this->config->getArendatypecard(), $service->carddescuser) !== false) {
                         $cardarray[] = $service->card;
                         $per = false;
                         continue;
@@ -291,7 +296,15 @@ class Querymain extends Queryhelper
                     }
                 }
                 // Если клиент с типом карты сопровождающий - вносим в массив данные его карты и карты сопровождаемых, у которых есть действующие услуги.
-                if ($services[0]->carddesc == $this->config->getSoptypecard()) $system['wildcard'] = array_values(array_unique($cardarray));
+                if ($services[0]->carddesc == $this->config->getSoptypecard()) {
+                    $system['wildcard'] = array_values(array_unique($cardarray));
+                    //Проверяем возможность входа для сопровождающего за клиентом после окончания занятия.
+                    try {
+                        $finishtime = collect($services)->where('statuszan', '>=', 1)->where('statprib', 1)->where('finishtime', '<=', date("Y-m-d H:i:s"))->where('finishtime', '>', (new DateTime('-' . $this->config->getTimefinish() . ' minute'))->format("Y-m-d H:i:s"))->count();
+                    } catch (Exception ) {
+                        return [false, $system, 'Ошибка в конфиге finishtime'];
+                    }
+                }
                 // Записываем данные в массив $system
                 $system['exptime'] = $services[$bestus]->exptime;
                 $system['typeus'] = $services[$bestus]->typeus;
@@ -300,24 +313,29 @@ class Querymain extends Queryhelper
                 $system['razusl'] = $services[0]->razusl;
                 $system['sop'] = $services[$bestus]->sop;
                 if (isset($services[0]->carddesc)) $system['typecard'] = $services[0]->carddesc;
+                if (isset($services[0]->carddescuser)) $system['typecardservice'] = $services[$bestus]->carddescuser;
                 $cause1 = "";
                 // Проверяем наличие фото
                 if ($services[0]->phototime == null) return [false, $system, 'Отсутствует фото'];
                 // Проверяем наличие блокировки карты
                 if ($services[0]->statuscard == 1) return [false, $system, 'Карта заблокирована администратором'];
-
                 //Проверяем на доступ к калитке. Клиентам запрещаем проход, если в типе карты не стоит "Лицо с инвалидностью"
                 if (in_array($accesspoint, array_map('intval', $this->config->getGate())) && $system['typecard'] != $this->config->getInvtypecard()) {
                     return [false, $system, "Ошибка: Клиенту с типом карты '".$system['typecard']."' доступ к калитке запрещён"];
                 }
                 //Проверяем клиента на разовые услуги, если они есть - отправляем на дополнительную проверку postProcess.
                 if (isset($services[0]->razusl)) {
-                    if ($services[0]->sop == 0) return $this->postProcess($system, 'Доступ действует по наличию одноразовых услуг у клиента', $services[0]);
-                    else return $this->postProcess($system, 'Сопровождение действует по наличию одноразовых услуг у сопровождаемого', $services[0]);
+                    if ($services[0]->sop == 0) return $this->postProcess($system, 'Доступ действует по наличию одноразовых услуг у клиента', $services[0], $finishtime);
+                    else return $this->postProcess($system, 'Сопровождение действует по наличию одноразовых услуг у сопровождаемого', $services[0], $finishtime);
+                }
+                //Проверяем клиента на арендатора или участника аренды, а также их сопровождающих. Их сразу отправляем на дополнительную проверку postProcess без проверки причины
+                if (strrpos($this->config->getArendatypecard(), $services[0]->carddescuser) !== false) {
+                    if ($services[0]->sop == 0) return $this->postProcess($system, 'Доступ действует по типу карты Аренда', $services[0], $finishtime);
+                     else return $this->postProcess($system, 'Сопровождение действует по наличию типа карты Аренда у сопровождаемого', $services[0], $finishtime);
                 }
                 //Причина блокировки прохода
                 if (isset($services[$bestus]->date1)) {
-                    if ($services[$bestus]->date1 > date_create('0001-01-01 00:00:00')) $cause1 = 'до '. $this->formatDate($services[$bestus]->date1,true);
+                    if (date_create($services[$bestus]->date1) > date_create('2001-01-01')) $cause1 = 'до '. $this->formatDate($services[$bestus]->date1,true);
                         else $cause1 = "перманентно";
                 }
                 // Проверяем окончание времени действия услуг
@@ -327,7 +345,7 @@ class Querymain extends Queryhelper
                         if ($services[$bestus]->status == 1 && date("Y-m-d H:i:s") <= $system['exptime']) {
                             //если у сопровождаемого закрыта сегодня услуга - не пропускаем на вход
                             if ($services[$bestus]->typeus == 1 && $services[$bestus]->posus == 0 && $direction == 2) return [false, $system, 'У сопровождаемых завершен лимит посещений'];
-                            return $this->postProcess($system, 'Сопровождение действует до ' . $this->formatDate($system['exptime']), $services[0]);
+                            return $this->postProcess($system, 'Сопровождение действует до ' . $this->formatDate($system['exptime']), $services[0], $finishtime);
                         }
                         // Проверяем блокировку услуги у сопровождаемого(ых)
                         else if ($services[$bestus]->status == 2 && isset($services[$bestus]->date1)) return [false, $system, 'Услуга у сопровождаемого заблокирована ' . $cause1];
@@ -374,7 +392,7 @@ class Querymain extends Queryhelper
                 //Если карточка принадлежит типу "Плоскостные", точка прохода входит в массив apipoint и kpppoint то меняем ID точки на виртуальную pointpss из конфига, что означает списание услуги на КПП.
                 else if (in_array($log['accessPoint'],$this->config->getApipoint()) && in_array($log['accessPoint'], array_map('intval', $this->config->getKpppoint()))) {
                     $typecard = $this->getTypeCard($log['keyHex']);
-                    if ($typecard[0] && strripos($this->config->getPsstypecard(), $typecard[1]) !== false) $log['accessPoint'] = $this->config->getPointpss();
+                    if ($typecard[0] && strrpos($this->config->getPsstypecard(), $typecard[1]) !== false) $log['accessPoint'] = $this->config->getPointpss();
                 }
             }
             //Удаляем данные в логе двойных проходов для карт из массива проходов
