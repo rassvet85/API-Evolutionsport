@@ -25,6 +25,7 @@ SELECT ZAN1._Fld898RRef AS ID, STAT._EnumOrder AS statuszan, ZAN1._Fld907 AS sta
 FROM _Document193_VT895 AS ZAN1
     JOIN _Document193 AS ZAN2 ON ZAN2._IDRRef = ZAN1._Document193_IDRRef AND ZAN2._Marked = 0x0 AND ZAN2._Posted = 1 AND DATEADD(yy, -2000, ZAN2._Fld850) > Convert(DateTime, DATEDIFF(DAY, 0, GETDATE())) AND DATEADD(yy, -2000, ZAN2._Fld850) < Convert(DateTime, DATEDIFF(DAY, -1, GETDATE()))
     JOIN _Enum360 AS STAT ON STAT._IDRRef = ZAN2._Fld874RRef
+WHERE ZAN1._Fld907 <> 2
     ),
 /* T3 Таблица разовых услуг клиента */
     T3 AS (
@@ -35,7 +36,7 @@ FROM _Document215 AS DOC3
     JOIN _AccumRgT7920 AS REG ON REG._Fld7904_RRRef = DOC3._IDRRef AND REG._Fld7906 > 0
     )
 /* Выборка активных услуг и данных клиента */
-SELECT SUB._Description AS name, UPPER(CARDS._Fld2882) AS card, TYPCARD._Description AS carddescuser, DATEADD(yy, -2000, DOC1._Fld7489) AS exptime, BINFILE.Version AS phototime, 0 AS sop, TYPCARD._Description AS carddesc, VIDUS._EnumOrder as vidus, TYPEUS._EnumOrder as typeus, DOC1._Fld7492 as dayus, DOC1._Fld7493 as posus, CONVERT(int,CARDS._Fld2881) AS statuscard, STAT._EnumOrder AS status, DATEADD(yy, -2000, DOC2._Fld1175) AS date1, T3.RAZUSL AS razusl, T2.statuszan, T2.statprib, DATEADD(yy, -2000, T2.starttime) AS starttime, DATEADD(yy, -2000, T2.finishtime) AS finishtime
+SELECT SUB._Description AS name, UPPER(CARDS._Fld2882) AS card, TYPCARD._Description AS carddescuser, CASE WHEN DATEADD(yy, -2000, DOC1._Fld7489) = '0001-01-01 00:00:00' THEN DATEADD(mm, +6, DATEADD(yy, -2000, DOC1._Fld7487)) ELSE DATEADD(yy, -2000, DOC1._Fld7489) END AS exptime, BINFILE.Version AS phototime, 0 AS sop, TYPCARD._Description AS carddesc, VIDUS._EnumOrder as vidus, TYPEUS._EnumOrder as typeus, DOC1._Fld7492 as dayus, DOC1._Fld7493 as posus, CONVERT(int,CARDS._Fld2881) AS statuscard, STAT._EnumOrder AS status, DATEADD(yy, -2000, DOC2._Fld1175) AS date1, T3.RAZUSL AS razusl, ISNULL(T2.statuszan, 10) as statuszan, T2.statprib, DATEADD(yy, -2000, T2.starttime) AS starttime, DATEADD(yy, -2000, T2.finishtime) AS finishtime
 /* _Reference87 Справочник.Карты (данные карты клиента) */
 FROM _Reference87 AS CARDS
          /* _Document226 Документ.ЧленствоПакетУслуг (выбираем неудалённые и не отменённые услуги) */
@@ -57,15 +58,15 @@ FROM _Reference87 AS CARDS
     LEFT JOIN T1 AS BINFILE ON BINFILE.ID = SUB._Fld3026_RRRef
     LEFT JOIN T2 ON T2.ID = CARDS._Fld2879_RRRef
     LEFT JOIN T3 ON T3.ID = CARDS._Fld2879_RRRef
-WHERE CARDS._Fld2882 = @WILDCARD AND CARDS._Marked = 0x0 AND CARDS._Fld2888 = 0x0 AND (DATEADD(yy, -2000, DOC1._Fld7489) > DATEADD(mm, -12, getdate()) OR TYPCARD._Description LIKE '%аренд%')
+WHERE CARDS._Fld2882 = @WILDCARD AND CARDS._Marked = 0x0 AND CARDS._Fld2888 = 0x0 AND (DATEADD(yy, -2000, DOC1._Fld7489) > DATEADD(mm, -12, getdate()) OR DATEADD(yy, -2000, DOC1._Fld7489) = '0001-01-01 00:00:00' OR TYPCARD._Description LIKE '%аренд%')
 
 UNION
 /* Выборка активных услуг и данных сопровождаемых */
-SELECT SUB._Description AS name, UPPER(CARDSX._Fld2882) AS card, TYPCARDX._Description AS carddescuser, DATEADD(yy, -2000, DOC1._Fld7489) AS exptime, BINFILE.Version AS phototime, 1 AS sop, TYPCARD._Description AS carddesc, VIDUS._EnumOrder as vidus, TYPEUS._EnumOrder as typeus, DOC1._Fld7492 as dayus, DOC1._Fld7493 as posus, CONVERT(int, CARDS._Fld2881) AS statuscard, STAT._EnumOrder AS status, DATEADD(yy, -2000, DOC2._Fld1175) AS date1, T3.RAZUSL AS razusl, T2.statuszan, T2.statprib, DATEADD(yy, -2000, T2.starttime) AS starttime, DATEADD(yy, -2000, T2.finishtime) AS finishtime
+SELECT SUB._Description AS name, UPPER(CARDSX._Fld2882) AS card, TYPCARDX._Description AS carddescuser, CASE WHEN DATEADD(yy, -2000, DOC1._Fld7489) = '0001-01-01 00:00:00' THEN DATEADD(mm, +6, DATEADD(yy, -2000, DOC1._Fld7487)) ELSE DATEADD(yy, -2000, DOC1._Fld7489) END AS exptime, BINFILE.Version AS phototime, 1 AS sop, TYPCARD._Description AS carddesc, VIDUS._EnumOrder as vidus, TYPEUS._EnumOrder as typeus, DOC1._Fld7492 as dayus, DOC1._Fld7493 as posus, CONVERT(int, CARDS._Fld2881) AS statuscard, STAT._EnumOrder AS status, DATEADD(yy, -2000, DOC2._Fld1175) AS date1, T3.RAZUSL AS razusl, ISNULL(T2.statuszan, 10) AS statuszan, T2.statprib, DATEADD(yy, -2000, T2.starttime) AS starttime, DATEADD(yy, -2000, T2.finishtime) AS finishtime
 /* _InfoRg6849 РегистрСведений.РодственныеСвязи (выбираем сопаровождаемых клиента) */
 FROM _InfoRg6849 AS CLRLX
-    /* _Reference87 Справочник.Карты (данные карты сопровождаемого) */
-    JOIN _Reference87 AS CARDS ON CARDS._Fld2879_RRRef = CLRLX._Fld6850RRef
+         /* _Reference87 Справочник.Карты (данные карты сопровождаемого) */
+         JOIN _Reference87 AS CARDS ON CARDS._Fld2879_RRRef = CLRLX._Fld6850RRef
     /* _Reference56 Справочник.ВидыКарт (выбираем тип карты клиента)*/
     JOIN _Reference56 AS TYPCARD ON TYPCARD._IDRRef = CARDS._Fld2878RRef
     /* _Reference87 Справочник.Карты (данные карт сопровождаемых, должны быть активны и не удалены) */

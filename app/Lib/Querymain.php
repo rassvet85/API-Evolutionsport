@@ -329,7 +329,7 @@ class Querymain extends Queryhelper
                     else return $this->postProcess($system, 'Сопровождение действует по наличию одноразовых услуг у сопровождаемого', $services[0], $finishtime);
                 }
                 //Проверяем клиента на арендатора или участника аренды, а также их сопровождающих. Их сразу отправляем на дополнительную проверку postProcess без проверки причины
-                if (strrpos($this->config->getArendatypecard(), $services[0]->carddescuser) !== false) {
+                if (strrpos($this->config->getArendatypecard(), $services[$bestus]->carddescuser) !== false) {
                     if ($services[0]->sop == 0) return $this->postProcess($system, 'Доступ действует по типу карты Аренда', $services[0], $finishtime);
                      else return $this->postProcess($system, 'Сопровождение действует по наличию типа карты Аренда у сопровождаемого', $services[0], $finishtime);
                 }
