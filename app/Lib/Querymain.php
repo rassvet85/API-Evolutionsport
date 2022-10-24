@@ -324,7 +324,7 @@ class Querymain extends Queryhelper
                     return [false, $system, "Ошибка: Клиенту с типом карты '".$system['typecard']."' доступ к калитке запрещён"];
                 }
                 //Проверяем клиента на разовые услуги, если они есть - отправляем на дополнительную проверку postProcess.
-                if (isset($services[0]->razusl)) {
+                if (isset($services[0]->razusl) || ($services[$bestus]->dayus > 0 && $services[$bestus]->status == null)) {
                     if ($services[0]->sop == 0) return $this->postProcess($system, 'Доступ действует по наличию одноразовых услуг у клиента', $services[0], $finishtime);
                     else return $this->postProcess($system, 'Сопровождение действует по наличию одноразовых услуг у сопровождаемого', $services[0], $finishtime);
                 }
